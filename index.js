@@ -1,67 +1,102 @@
-// Task:
-//      Aşağıdakı şəkili sadəcə js, css və bootstrap istifadə edərək yazın (QƏTİYYƏN HTML YAZMIRSIZ) (innerHTML istifadə edib, bütün HTML-i ``-ilə yazmayın, createElement, append istifadə edin)
-// Task:
-//     P.S - Aşağıdakıları araşdırın!
-// difference between array and Nodelist, HTMLCollection, innerHTML vs createElement
-// replaceChild(), cloneNode() ,after() ,insertAdjacentHTML() insertBefore(), insterAfter()
-// getComputedStyle()
-// Ve elave olaraq dersde yazdiqlarimizi bol-bol praktika edin
+const clearBtn = document.querySelector(".clear");
+const todoText = document.querySelector(".todo-text");
+const textBtn = document.querySelector("form");
+const textSpan = document.querySelector(".text-span");
+const textUl = document.querySelector(".text-ul");
+const todoItemCount = document.querySelector(".todo-item-span");
+let todoCount = 0;
+textBtn.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (todoText.value.trim() === "") {
+    alert("Input is required!");
+  } else {
+    const newTodo = document.createElement("li");
+    const blueBtn = document.querySelector(".blue-btn");
+    console.log(blueBtn);
+    newTodo.innerHTML = `
+        <span class="text-span">${todoText.value}</span>
+        <div>
+        <button class=" btn-outline-primary blue-btn"><i class="fa-solid fa-check"></i></button>
+        <button class="red-btn"><i class="fa-solid fa-trash"></i></button>
+        <button class="yellow-btn"><i class="fa-solid fa-pen-to-square"></i></button>
+    </div> `;
+    textUl.appendChild(newTodo);
+    textUl.style.display = "block";
+    todoText.value = "";
+    todoCount++;
+    todoItemCount.textContent = todoCount;
 
-//BOX
+    Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "Your work has been saved",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+});
 
-const body = document.body;
-const section = document.createElement("section");
-body.appendChild(section);
-const div = document.createElement("div");
-div.style.width = "1140px";
-div.style.margin = "0 auto";
-div.className = "container";
-section.appendChild(div);
-const divP = document.createElement("div");
-divP.className = "sec-wrap";
-div.appendChild(divP);
-divP.style.width = "100%";
-divP.style.height = "360";
-divP.style.backgroundColor = "gray";
-divP.textContent = "960x360px";
-divP.style.color = "white";
-divP.style.fontSize = "30px";
-divP.style.display = "flex";
-divP.style.alignItems = "center";
-divP.style.justifyContent = "center";
-divP.style.margin = "30px 0";
-//box finish
+textUl.addEventListener("click", (e) => {
+  const spanTarget = e.target.parentNode.parentNode.parentNode.children[0];
+  if (e.target.className === "fa-solid fa-trash") {
+    e.target.parentNode.parentNode.parentNode.remove();
+    todoCount--;
+    todoItemCount.textContent = todoCount;
+    if (todoItemCount.textContent < 1) todoItemCount.textContent = "no";
+  }
+  if (e.target.className === "fa-solid fa-check") {
+    if (spanTarget.style.textDecoration === "line-through") {
+      spanTarget.style.textDecoration = "";
+    } else {
+      spanTarget.style.textDecoration = "line-through";
+    }
+  }
+  if (e.target.className === "fa-solid fa-pen-to-square") {
+    Swal.fire({
+      title: "Edit To do",
+      input: "text",
+      inputAttributes: {
+        autocapitalize: "off",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Update",
+      showLoaderOnConfirm: true,
+      preConfirm: async (login) => {
+        try {
+          console.log(login);
+          spanTarget.innerHTML = login;
+        } catch (error) {
+          Swal.showValidationMessage(`
+              Request failed: ${error}
+            `);
+        }
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+    }).then((result) => {});
+    const swalInput = document.querySelector(".swal2-input");
+    swalInput.value = spanTarget.textContent;
+  }
+});
 
-const divAll = document.createElement("div");
-divAll.classList.add("row", "div-title");
-div.appendChild(divAll);
-
-for (let i = 0; i < 3; i++) {
-  const divItem = document.createElement("div");
-  divItem.classList.add("col-4", "div-item");
-  divAll.appendChild(divItem);
-  const divBox = document.createElement("div");
-  divBox.classList.add("div-box");
-  divItem.appendChild(divBox);
-  divBox.textContent = "290x180px";
-
-  const divWord = document.createElement("div");
-  divWord.classList.add("div-word");
-  divItem.appendChild(divWord);
-
-  const divwordItem = document.createElement("h2");
-  divwordItem.classList.add("div-word-item");
-  divWord.appendChild(divwordItem);
-  divwordItem.textContent = "Indononceteus facilies";
-
-  const divwordTitle = document.createElement("p");
-  divwordTitle.classList.add("div-word-title");
-  divWord.appendChild(divwordTitle);
-  divwordTitle.textContent =
-    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quam, harum.";
-
-  const divLink = document.createElement("a");
-  divLink.classList.add("div-link");
-  divWord.appendChild(divLink);
-  divLink.textContent = "Read More >";
-}
+clearBtn.addEventListener("click", () => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: "Deleted!",
+        text: "Your file has been deleted.",
+        icon: "success",
+      });
+      [...textUl.children].forEach((item) => {
+        item.remove();
+      });
+    }
+  });
+});
